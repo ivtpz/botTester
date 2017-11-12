@@ -19,9 +19,11 @@ Vue.directive('draggable', function (el, binding, vNode) {
       maxY = parentBox.height - height;
     })
     el.style.position = 'absolute';
+    el.style.cursor = 'move';
     var startX, startY, initialMouseX, initialMouseY;
 
     function mousemove(e) {
+      binding.value();
       var dx = e.clientX - initialMouseX;
       var dy = e.clientY - initialMouseY;
       el.style.top = Math.max(Math.min(startY + dy, maxY), 0) + 'px';
@@ -30,6 +32,7 @@ Vue.directive('draggable', function (el, binding, vNode) {
     }
 
     function mouseup() {
+      binding.value('end');
       document.removeEventListener('mousemove', mousemove);
       document.removeEventListener('mouseup', mouseup);
     }
