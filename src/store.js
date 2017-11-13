@@ -1,3 +1,5 @@
+import Vue from 'vue';
+
 class Node {
   constructor(value, name, combinator) {
     this.value = value;
@@ -40,13 +42,17 @@ export default {
     // Local state --> floatingNodes: []
   },
   mutations: {
-    createSubTree: state => (algo1, algo2, combinator) => {
-      const computedAlgorithmName = `computedAlgorithm${++state.computedAlgorithms}`;
+    createSubTree: (state, { rightAlgo, leftAlgo, combinator }) => {
+      const computedAlgorithmName = ++state.computedAlgorithms;
       const tree = new Node(0, computedAlgorithmName, combinator);
-      tree.add(-100, algo1);
-      tree.add(100, algo2);
-      state.algorithmTrees[combinator] = (tree); // may want to ID by computedAlgo # ?
+      tree.add(-100, leftAlgo);
+      tree.add(100, rightAlgo);
+      Vue.set(state.algorithmTrees, combinator, tree); // may want to ID by computedAlgo # ?
     },
-    decrement: state => state.count--,
   },
+  getters: {
+    getComputedAlgorithmName: (state) => (combinatorName) =>
+      state.algorithmTrees[combinatorName]
+      && state.algorithmTrees[combinatorName].name,
+  }
 };
