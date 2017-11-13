@@ -7,18 +7,38 @@
           :x="strokeWidth"
           :y="strokeWidth"
           class="dashed-block"
+          :fill="leftAlgo ? 'white' : 'none'"
           :stroke="active === 'left' ? 'green' : 'grey'"
           ref="leftRect"
         />
+        <text
+          fill="black"
+          font-family="Verdana"
+          font-size="16"
+          :x="strokeWidth + 10"
+          :y="strokeWidth + 20"
+        >
+          {{ leftAlgo }}
+        </text>
         <rect
           :width="blockWidth"
           :height="blockHeight"
           :x="combBlockWidth - strokeWidth - blockWidth"
           :y="strokeWidth"
           class="dashed-block"
+          :fill="rightAlgo ? 'white' : 'none'"
           :stroke="active === 'right' ? 'green' : 'grey'"
           ref="rightRect"
         />
+        <text
+          fill="black"
+          font-family="Verdana"
+          font-size="16"
+          :x="combBlockWidth - strokeWidth - blockWidth + 10"
+          :y="strokeWidth + 20"
+        >
+          {{ rightAlgo }}
+        </text>
         <line
           :x1="blockWidth / 2"
           :x2="combBlockWidth / 2"
@@ -58,7 +78,7 @@
           :x="(combBlockWidth - blockWidth) / 2"
           :y="(combBlockHeight - blockHeight) / 2 + 20"
         >
-          Comb
+          {{ name }}
         </text>
         <rect
           :width="blockWidth"
@@ -66,8 +86,18 @@
           :x="(combBlockWidth - blockWidth) / 2"
           :y="combBlockHeight - blockHeight - strokeWidth"
           class="dashed-block"
+          :fill="bottomAlgo ? 'white' : 'none'"
           stroke="grey"
         />
+        <text
+          fill="black"
+          font-family="Verdana"
+          font-size="16"
+          :x="(combBlockWidth - blockWidth) / 2 + 10"
+          :y="combBlockHeight - blockHeight - strokeWidth + 20"
+        >
+          {{ bottomAlgo }}
+        </text>
       </svg>
     </div>
 </template>
@@ -82,15 +112,23 @@ export default {
     'combBlockHeight',
     'strokeWidth',
     'active',
+    'name',
+    'leftAlgo',
+    'rightAlgo',
+    'bottomAlgo',
   ],
   methods: {
     updateDragPostion(end) {
       if (end) {
         this.$emit('end-drag');
       } else {
-        const name = 'comb-test';
-        const leftBlock = this.$refs.leftRect.getBoundingClientRect();
-        const rightBlock = this.$refs.rightRect.getBoundingClientRect();
+        const { name, leftAlgo, rightAlgo } = this;
+        const leftBlock = !leftAlgo
+          ? this.$refs.leftRect.getBoundingClientRect()
+          : null;
+        const rightBlock = !rightAlgo
+          ? this.$refs.rightRect.getBoundingClientRect()
+          : null;
         this.$emit('drag-move', { name, leftBlock, rightBlock })
       }
     }
@@ -105,6 +143,5 @@ export default {
   .dashed-block {
     stroke-width: 2;
     stroke-dasharray: 10 5;
-    fill: none;
   }
 </style>
