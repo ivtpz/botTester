@@ -1,5 +1,5 @@
 <template>
-  <div class="board" v-on:click="addFloatingAlgorithm" >
+  <div class="board" v-on:click="handleClick" >
     <algorithm-block
       v-for="algo in algos"
       v-bind="algo"
@@ -10,8 +10,9 @@
       @end-drag="combineCollidedElements"
     />
     <combinator-section
-      v-bind="blockStyles"
-      :active="collidedComb.side"
+      v-for="comb in combs"
+      v-bind="Object.assign({}, blockStyles, comb)"
+      :key="comb.name"
       @drag-move="handleCombDrag"
       @end-drag="combineCollidedElements"
     />
@@ -22,7 +23,7 @@
 import CombinatorSection from './CombinatorSection';
 import AlgorithmBlock from './AlgorithmBlock';
 
-const hasOverlap = (box1, box2) =>
+const hasOverlap = (box1, box2) => box1 && box2 &&
   (box1.left > box2.left && box1.left < box2.right
   || box1.right > box2.left && box1.right < box2.right)
   && (box1.bottom > box2.top && box1.bottom < box2.bottom
@@ -30,6 +31,7 @@ const hasOverlap = (box1, box2) =>
   || false;
 
 const directions = ['top', 'left', 'bottom', 'right'];
+const emptyLocation = { top: 0, bottom: 0, left: 0, right: 0 };
 
 export default {
   name: 'DraggableBoard',
@@ -47,19 +49,51 @@ export default {
         combBlockHeight: 200,
         strokeWidth: 2,
       },
+      num: 0,
     };
   },
   computed: {
     algos: function() {
+      console.log(this.$store)
       return Object.keys(this.floatingAlgorithms)
-        .map(algo => ({ name: algo, active: this.collidedAlgo === algo }));
-    }
+        .filter(key => this.floatingAlgorithms[key])
+        .map(algo => ({ name: algo, active: this.collidedAlgo === algo }))
+    },
+    combs: function() {
+      return Object.keys(this.combinators)
+        .map(comb => ({
+          name: comb,
+          active: this.collidedComb.name === comb
+            ? this.collidedComb.side : null,
+          leftAlgo: this.combinators[comb].leftAlgo,
+          rightAlgo: this.combinators[comb].rightAlgo,
+          bottomAlgo: this.$store.getters.getComputedAlgorithmName(comb)
+        }));
+    },
   },
   methods: {
+    handleClick() {
+      if (this.num % 3) {
+        this.addFloatingAlgorithm();
+      } else {
+        this.addCombinator();
+      }
+      this.num++;
+    },
     addFloatingAlgorithm() {
       this.$set(
         this.floatingAlgorithms, Math.floor(Math.random() * 100),
-        { top: 0, bottom: 0, left: 0, right: 0 }
+        { ...emptyLocation }
+      );
+    },
+    addCombinator() {
+      const name = Math.floor(Math.random() * 100);
+      this.combinators = { ...this.combinators, [name]: {} };
+      this.$set(
+        this.combinators[name], 'leftBlock', { ...emptyLocation }
+      );
+      this.$set(
+        this.combinators[name], 'rightBlock', { ...emptyLocation }
       );
     },
     handleAlgoDrag({ name, box }) {
@@ -69,7 +103,11 @@ export default {
       this.checkCombsForCollisions(name);
     },
     handleCombDrag({ name, leftBlock, rightBlock }) {
-      this.combinators[name] = { leftBlock, rightBlock };
+      this.combinators[name] = {
+        ...this.combinators[name],
+        leftBlock,
+        rightBlock
+      };
       this.checkAlgosForCollisions(name);
     },
     checkAlgosForCollisions(name) {
@@ -114,7 +152,16 @@ export default {
     },
     combineCollidedElements() {
       if (this.collidedAlgo) {
-        console.log('Should combine')
+        const { name, side } = this.collidedComb;
+        this.$set(this.combinators[name], `${side}Algo`, this.collidedAlgo);
+        this.combinators[name][`${side}Block`] = null;
+        this.floatingAlgorithms[this.collidedAlgo] = null;
+        this.collidedAlgo = null;
+        this.collidedComb = { name: null };
+        const { leftAlgo, rightAlgo } = this.combinators[name];
+        if (leftAlgo && rightAlgo) {
+          this.$store.commit('createSubTree', { leftAlgo, rightAlgo, combinator: name });
+        }
       }
     }
   },
@@ -125,7 +172,7 @@ export default {
   .board {
     position: relative;
     background-color: lightgray;
-    width: 500px;
-    height: 300px;
+    width: 650px;
+    height: 450px;
   }
 </style>
