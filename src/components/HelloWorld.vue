@@ -1,8 +1,5 @@
 <template>
   <div class="hello" v-bind:class="{ 'flash': is_flashing }">
-    <h1 v-for="msg in msgs" :key="msg" >{{ msg }}</h1>
-    <input v-model="usr_input" type="text" />
-    <p>{{usr_input}}</p>
     <draggable-board></draggable-board>
   </div>
 </template>
@@ -14,7 +11,6 @@ export default {
   components: { DraggableBoard },
   data() {
     return {
-      msgs: ['Welcome to Bot Tester', 'We give you the blocks to build trading bots', 'And test them for you'],
       usr_input: '',
       is_flashing: false,
     };
