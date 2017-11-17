@@ -14,6 +14,7 @@ Vue.config.productionTip = false;
 
 // TODO: separate out into directives directory
 Vue.directive('draggable', function (el, binding, vNode) {
+    let debounced = false;
     let maxX, maxY;
     vNode.context.$nextTick(() => {
       const { width, height } = el.getBoundingClientRect();
@@ -26,11 +27,15 @@ Vue.directive('draggable', function (el, binding, vNode) {
     var startX, startY, initialMouseX, initialMouseY;
 
     function mousemove(e) {
-      binding.value();
-      var dx = e.clientX - initialMouseX;
-      var dy = e.clientY - initialMouseY;
-      el.style.top = Math.max(Math.min(startY + dy, maxY), 0) + 'px';
-      el.style.left = Math.max(Math.min(startX + dx, maxX), 0) + 'px';
+      if (!debounced) {
+        binding.value();
+        var dx = e.clientX - initialMouseX;
+        var dy = e.clientY - initialMouseY;
+        el.style.top = Math.max(Math.min(startY + dy, maxY), 0) + 'px';
+        el.style.left = Math.max(Math.min(startX + dx, maxX), 0) + 'px';
+        debounced = true;
+        setTimeout(() => { debounced = false }, 100);
+      }
       return false;
     }
 
