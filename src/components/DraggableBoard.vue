@@ -11,8 +11,9 @@
     />
     <combinator-section
       v-for="comb in combs"
-      v-bind="Object.assign({}, blockStyles, comb)"
-      :key="comb.name"
+      v-bind="blockStyles"
+      :combMatrix="comb"
+      :key="comb[0][0].name"
       @drag-move="handleCombDrag"
       @end-drag="combineCollidedElements"
     />
@@ -40,13 +41,16 @@ export default {
     return {
       floatingAlgorithms: {},
       combinators: {},
+      completedCombinators: {},
+      combinatorLocInStructureArray: {},
+      structures: [],
       collidedAlgo: null,
       collidedComb: { name: null },
       blockStyles: {
         blockWidth: 50,
         blockHeight: 30,
         combBlockWidth: 150,
-        combBlockHeight: 200,
+        combBlockHeight: 120,
         strokeWidth: 2,
       },
       num: 0,
@@ -54,25 +58,29 @@ export default {
   },
   computed: {
     algos: function() {
-      console.log(this.$store)
       return Object.keys(this.floatingAlgorithms)
-        .filter(key => this.floatingAlgorithms[key])
+        .filter(key => this.floatingAlgorithms[key] && !this.completedCombinators[key])
         .map(algo => ({ name: algo, active: this.collidedAlgo === algo }))
     },
     combs: function() {
-      return Object.keys(this.combinators)
-        .map(comb => ({
-          name: comb,
-          active: this.collidedComb.name === comb
-            ? this.collidedComb.side : null,
-          leftAlgo: this.combinators[comb].leftAlgo,
-          rightAlgo: this.combinators[comb].rightAlgo,
-          bottomAlgo: this.$store.getters.getComputedAlgorithmName(comb)
-        }));
+      return this.$store.getters.getCombinatorMatricies.map(matrix =>
+        matrix.map(row => row.map(section =>
+          section.map(({ name, tracked }) => ({
+            name,
+            tracked,
+            active: this.collidedComb.name === name
+              ? this.collidedComb.side : null,
+            leftAlgo: this.combinators[name].leftAlgo,
+            rightAlgo: this.combinators[name].rightAlgo,
+            bottomAlgo: this.$store.getters.getComputedAlgorithmName(name)
+          }))
+        ))
+      );
     },
   },
   methods: {
     handleClick() {
+      console.log(this.$store.getters.getCombinatorMatricies);
       if (this.num % 3) {
         this.addFloatingAlgorithm();
       } else {
@@ -80,14 +88,14 @@ export default {
       }
       this.num++;
     },
-    addFloatingAlgorithm() {
+    addFloatingAlgorithm(name, position) {
       this.$set(
-        this.floatingAlgorithms, Math.floor(Math.random() * 100),
-        { ...emptyLocation }
+        this.floatingAlgorithms, name || Math.floor(Math.random() * 1000),
+        position || { ...emptyLocation }
       );
     },
     addCombinator() {
-      const name = Math.floor(Math.random() * 100);
+      const name = Math.floor(Math.random() * 1000);
       this.combinators = { ...this.combinators, [name]: {} };
       this.$set(
         this.combinators[name], 'leftBlock', { ...emptyLocation }
@@ -95,6 +103,7 @@ export default {
       this.$set(
         this.combinators[name], 'rightBlock', { ...emptyLocation }
       );
+      this.$store.commit('registerCombinator', { name });
     },
     handleAlgoDrag({ name, box }) {
       directions.forEach(direction => {
@@ -102,13 +111,24 @@ export default {
       })
       this.checkCombsForCollisions(name);
     },
-    handleCombDrag({ name, leftBlock, rightBlock }) {
-      this.combinators[name] = {
-        ...this.combinators[name],
-        leftBlock,
-        rightBlock
-      };
-      this.checkAlgosForCollisions(name);
+    handleCombDrag({ name, leftBlock, rightBlock, bottomBlock, combName }) {
+      if (bottomBlock) {
+        // This is a complete combinator, we will treat it like
+        // an algorithm
+        // TODO: add this when it's combined
+        if (!this.floatingAlgorithms[name]) {
+          this.completedCombinators[name] = combName;
+          this.addFloatingAlgorithm(name, { ...bottomBlock })
+        }
+        this.handleAlgoDrag({ name, box: bottomBlock });
+      } else {
+        this.combinators[name] = {
+          ...this.combinators[name],
+          leftBlock,
+          rightBlock
+        };
+        this.checkAlgosForCollisions(name);
+      }
     },
     checkAlgosForCollisions(name) {
       const { leftBlock, rightBlock } = this.combinators[name];
@@ -156,12 +176,15 @@ export default {
         this.$set(this.combinators[name], `${side}Algo`, this.collidedAlgo);
         this.combinators[name][`${side}Block`] = null;
         this.floatingAlgorithms[this.collidedAlgo] = null;
+        const topComb = this.completedCombinators[this.collidedAlgo];
+        const { leftAlgo, rightAlgo } = this.combinators[name];
+        this.$store.commit('addToSubTree', { algo: this.collidedAlgo, side, combinator: name, complete: leftAlgo && rightAlgo })
+        if (topComb) {
+          // TODO: need to handle completing a combinator section here too!
+          this.$store.commit('combineCombinatorSections', { topComb, bottomComb: name, side })
+        }
         this.collidedAlgo = null;
         this.collidedComb = { name: null };
-        const { leftAlgo, rightAlgo } = this.combinators[name];
-        if (leftAlgo && rightAlgo) {
-          this.$store.commit('createSubTree', { leftAlgo, rightAlgo, combinator: name });
-        }
       }
     }
   },
