@@ -4,7 +4,7 @@
       <h2>Algorithms</h2>
       <div
         v-for="algo in algorithms"
-        class="algo-container"
+        class="container"
         :key="algo"
       >
         <div
@@ -23,13 +23,43 @@
             height="50"
           />
         </div>
-        <div :class="draggedName === algo ? 'placeholder-text' : 'placeholder-text--hidden'" :key="algo + '-placeholder'">{{algo}}</div>
+        <div
+          :class="draggedName === algo ? 'placeholder-text' : 'placeholder-text--hidden'"
+          :key="algo + '-placeholder'"
+        >
+          {{algo}}
+        </div>
       </div>
       <h2>Combinators</h2>
-      <div v-for="comb in combinators" :key="comb">{{comb}}</div> 
+      <div
+        v-for="comb in combinators"
+        :key="comb"
+        class="container"
+      >
+        <div
+          v-draggable="{ func: updateDragStatus, name: comb }"
+          class="draggable-text"
+          :ref="comb"
+        >
+          <span v-if="showAsBlock !== comb">
+            {{comb}}
+          </span>
+          <combinator-section
+            v-else
+            v-bind="blockStyles"
+            :combMatrix="getCombMatrix(comb)"
+            :name="comb"
+            :hovering="true"
+          />
+        </div>
+        <div
+          :class="draggedName === comb ? 'placeholder-text placeholder-text-comb' : 'placeholder-text--hidden'"
+          :key="comb + '-placeholder'"
+        >{{ comb }}</div>
+      </div> 
     </div>
     <draggable-board
-      @mouse-enter-board="showAlgoAsBlock"
+      @mouse-enter-board="showAlgoOrCombAsBlock"
       @mouse-leave-board="removeBlock"
       ref="board"
     />
@@ -39,16 +69,20 @@
 <script>
 import DraggableBoard from './DraggableBoard';
 import AlgorithmBlock from './AlgorithmBlock';
+import CombinatorSection from './CombinatorSection';
+import blockStyles from '../shared/blockSizing.json';
+
 export default {
   name: 'HelloWorld',
-  components: { DraggableBoard, AlgorithmBlock },
+  components: { DraggableBoard, AlgorithmBlock, CombinatorSection },
   data() {
     return {
       algorithms: ['Momentum', 'MV Regression', 'Neural Network'],
       combinators: ['Union', 'Average', 'Maximum'],
       draggedName: '',
       showAsBlock: '',
-      incrementingId: 0
+      incrementingId: 0,
+      blockStyles
     }
   },
   methods: {
@@ -56,8 +90,14 @@ export default {
       if (name === 'end') {
         const draggedElement = this.$refs[this.draggedName][0];
         if (this.showAsBlock !== '') {
+          const isAlgorithm = this.algorithms.indexOf(this.showAsBlock) > -1;
           const position = draggedElement.getBoundingClientRect();
-          this.$refs.board.addFloatingAlgorithm(this.showAsBlock + `<->${++this.incrementingId}`, position);
+          const name = this.showAsBlock + `<->${++this.incrementingId}`;
+          if (isAlgorithm) {
+            this.$refs.board.addFloatingAlgorithm(name, position);
+          } else {
+            this.$refs.board.addCombinator(name, position);
+          }
           this.showAsBlock = '';
         }
         draggedElement.style.left = '0px'
@@ -67,11 +107,14 @@ export default {
         this.draggedName = name;
       }
     },
-    showAlgoAsBlock() {
+    showAlgoOrCombAsBlock() {
       this.showAsBlock = this.draggedName;
     },
     removeBlock() {
       this.showAsBlock = '';
+    },
+    getCombMatrix(name) {
+      return [[[{ name, tracked: true }]]]
     }
   },
 };
@@ -81,7 +124,7 @@ export default {
   .hello {
     display: flex;
   }
-  .algo-container {
+  .container {
     position: relative;
   }
   .draggable-text {
@@ -93,10 +136,13 @@ export default {
     color: grey;
     border: 1px dashed #6bf0fc;
   }
+  .placeholder-text-comb {
+    border: 1px dashed #6bfc88;
+  }
   .placeholder-text--hidden {
     text-align: left;
     color: white;
-    border: 1px solid white;
+    padding: 1px;
   }
   h1, h2 {
     font-weight: normal;

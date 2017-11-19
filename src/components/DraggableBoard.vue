@@ -1,5 +1,5 @@
 <template>
-  <div class="drag-detector" v-on="{ click: handleClick, mouseenter: emitMouseEnter, mouseleave: emitMouseLeave }">
+  <div class="drag-detector" v-on="{ mouseenter: emitMouseEnter, mouseleave: emitMouseLeave }">
   <div class="board">
     <algorithm-block
       v-for="algo in algos"
@@ -25,6 +25,7 @@
 <script>
 import CombinatorSection from './CombinatorSection';
 import AlgorithmBlock from './AlgorithmBlock';
+import blockStyles from '../shared/blockSizing.json';
 
 const hasOverlap = (box1, box2) => box1 && box2 &&
   (box1.left > box2.left && box1.left < box2.right
@@ -48,14 +49,7 @@ export default {
       structures: [],
       collidedAlgo: null,
       collidedComb: { name: null },
-      blockStyles: {
-        blockWidth: 85,
-        blockHeight: 50,
-        combBlockWidth: 200,
-        combBlockHeight: 190,
-        strokeWidth: 2,
-      },
-      num: 0,
+      blockStyles,
     };
   },
   computed: {
@@ -82,14 +76,6 @@ export default {
     },
   },
   methods: {
-    handleClick() {
-      if (this.num % 3) {
-        this.addFloatingAlgorithm();
-      } else {
-        this.addCombinator();
-      }
-      this.num++;
-    },
     emitMouseEnter() {
       this.$emit('mouse-enter-board');
     },
@@ -107,8 +93,9 @@ export default {
         positionObject || { ...emptyLocation }
       );
     },
-    addCombinator() {
-      const name = Math.floor(Math.random() * 1000);
+    addCombinator(name, domPosition) {
+      console.log(domPosition)
+      // TODO: allow initial position
       this.combinators = { ...this.combinators, [name]: {} };
       this.$set(
         this.combinators[name], 'leftBlock', { ...emptyLocation }
