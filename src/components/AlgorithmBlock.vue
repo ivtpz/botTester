@@ -52,7 +52,7 @@
     color: white;
     font-weight: 570;
     text-shadow: 0px 1px 1px grey;
-    border: 2px dashed grey;
+    border: 2px solid grey;
     vertical-align: middle;
     text-align: center;
     display: flex;
