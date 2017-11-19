@@ -60,7 +60,6 @@ export default {
   },
   computed: {
     algos: function() {
-      console.log(this.floatingAlgorithms.Momentu)
       return Object.keys(this.floatingAlgorithms)
         .filter(key => this.floatingAlgorithms[key] && !this.completedCombinators[key])
         .map(algo => ({ name: algo, active: this.collidedAlgo === algo }))

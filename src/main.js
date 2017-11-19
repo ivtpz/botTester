@@ -13,7 +13,6 @@ const store = new Vuex.Store(storeConfig);
 Vue.config.productionTip = false;
 
 // TODO: separate out into directives directory
-// TODO: use bind (or inserted?) and update
 Vue.directive('draggable', {
   bind: function (el, binding, vNode) {
     let debounced = false;
@@ -33,7 +32,6 @@ Vue.directive('draggable', {
       })
       
       el.addEventListener('mousedown', function(e) {
-        console.log(el)
         binding.value.func(binding.value.name);
         if (el.style.position !== 'absolute') {
           el.style.position = 'absolute';
