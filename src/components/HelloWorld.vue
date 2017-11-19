@@ -2,14 +2,28 @@
   <div class="hello">
     <div>
       <h2>Algorithms</h2>
-      <div v-for="algo in algorithms" class="algo-container" :key="algo">
-        <div v-draggable="{ func: updateDragStatus, name: algo }" :ref="algo">
-          <div v-if="showAsBlock !== algo">
+      <div
+        v-for="algo in algorithms"
+        class="algo-container"
+        :key="algo"
+      >
+        <div
+          v-draggable="{ func: updateDragStatus, name: algo }"
+          class="draggable-text"
+          :ref="algo"
+        >
+          <span v-if="showAsBlock !== algo">
             {{algo}}
-          </div>
-          <algorithm-block v-else :name="algo" width="40" height="30"/>
+          </span>
+          <algorithm-block
+            v-else
+            :name="algo"
+            :hovering="true"
+            width="80"
+            height="50"
+          />
         </div>
-        <div :class="draggedName === algo ? 'placeholder' : 'placeholder--hidden'" :key="algo + '-placeholder'">{{algo}}</div>
+        <div :class="draggedName === algo ? 'placeholder-text' : 'placeholder-text--hidden'" :key="algo + '-placeholder'">{{algo}}</div>
       </div>
       <h2>Combinators</h2>
       <div v-for="comb in combinators" :key="comb">{{comb}}</div> 
@@ -30,10 +44,11 @@ export default {
   components: { DraggableBoard, AlgorithmBlock },
   data() {
     return {
-      algorithms: ['Momentu', 'MV Regression', 'Neural Network'],
+      algorithms: ['Momentum', 'MV Regression', 'Neural Network'],
       combinators: ['Union', 'Average', 'Maximum'],
       draggedName: '',
       showAsBlock: '',
+      incrementingId: 0
     }
   },
   methods: {
@@ -42,7 +57,7 @@ export default {
         const draggedElement = this.$refs[this.draggedName][0];
         if (this.showAsBlock !== '') {
           const position = draggedElement.getBoundingClientRect();
-          this.$refs.board.addFloatingAlgorithm(this.showAsBlock, position);
+          this.$refs.board.addFloatingAlgorithm(this.showAsBlock + `<->${++this.incrementingId}`, position);
           this.showAsBlock = '';
         }
         draggedElement.style.left = '0px'
@@ -69,12 +84,16 @@ export default {
   .algo-container {
     position: relative;
   }
-  .placeholder {
-    text-align: left;
+  .draggable-text {
+    width: 100%;
+    text-align: center;
+  }
+  .placeholder-text {
+    text-align: center;
     color: grey;
     border: 1px dashed #6bf0fc;
   }
-  .placeholder--hidden {
+  .placeholder-text--hidden {
     text-align: left;
     color: white;
     border: 1px solid white;

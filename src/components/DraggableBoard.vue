@@ -49,10 +49,10 @@ export default {
       collidedAlgo: null,
       collidedComb: { name: null },
       blockStyles: {
-        blockWidth: 40,
-        blockHeight: 30,
-        combBlockWidth: 90,
-        combBlockHeight: 120,
+        blockWidth: 85,
+        blockHeight: 50,
+        combBlockWidth: 200,
+        combBlockHeight: 190,
         strokeWidth: 2,
       },
       num: 0,
@@ -210,8 +210,8 @@ export default {
   }
   .board {
     position: relative;
-    width: 650px;
-    height: 450px;
+    width: 900px;
+    height: 650px;
     border: 2px solid grey;
   }
 </style>

@@ -18,15 +18,36 @@
             :width="getSectionWidth(i)"
             :height="combBlockHeight"
           >
+            <defs>
+              <radialGradient id="comb-block">
+                <stop offset="0%" stop-color="#a3f3af"/>
+                <stop offset="100%" stop-color="#6bfc88"/>
+              </radialGradient>
+              <radialGradient id="algo-block">
+                <stop offset="0%" stop-color="#adebf1"/>
+                <stop offset="100%" stop-color="#6bf0fc"/>
+              </radialGradient>
+            </defs>
             <rect
               v-if="c.name"
-              class="dashed-block"
+              :class="{
+                'block': true,
+                'block--filled': c.leftAlgo,
+                'dashed-block': !c.leftAlgo,
+                'dashed-block--top': !c.leftAlgo,
+                'dashed-block--active': c.active === 'left'
+              }"
               :width="blockWidth"
               :height="blockHeight"
               :x="strokeWidth"
               :y="strokeWidth"
-              :fill="c.leftAlgo ? 'white' : 'none'"
-              :stroke="c.active === 'left' ? 'green' : c.leftAlgo ? 'none' : 'grey'"
+              rx="3"
+              ry="3"
+              :style="{
+                'transform-origin': `${strokeWidth + blockWidth / 2}px ${strokeWidth + blockHeight / 2}px` 
+              }"
+              :fill="c.leftAlgo ? 'url(#algo-block)' : 'none'"
+              :stroke="c.active === 'left' ? '#515151' : c.leftAlgo ? 'grey' : 'grey'"
               :ref="c.tracked ? 'leftRect' : 'test'"
             />
             <text
@@ -34,10 +55,17 @@
               fill="black"
               font-family="Verdana"
               font-size="16"
-              :x="strokeWidth + 10"
+              :x="strokeWidth + blockWidth / 2"
               :y="strokeWidth + 20"
+              text-anchor="middle"
             >
-              {{ c.leftAlgo }}
+              <tspan
+                v-for="(nameSection, j) in getAlgoName(c.leftAlgo)"
+                :key="c.leftAlgo + j"
+                :x="strokeWidth + blockWidth / 2"
+                :y="strokeWidth + 20"
+                :dy="20 * j"
+              >{{ nameSection }} </tspan>
             </text>
             <rect
               v-if="c.name"
@@ -45,9 +73,20 @@
               :height="blockHeight"
               :x="getSectionWidth(i) - strokeWidth - blockWidth"
               :y="strokeWidth"
-              class="dashed-block"
-              :fill="c.rightAlgo ? 'white' : 'none'"
-              :stroke="c.active === 'right' ? 'green' : c.rightAlgo ? 'none' : 'grey'"
+              rx="3"
+              ry="3"
+              :class="{
+                'block': true,
+                'block--filled': c.rightAlgo,
+                'dashed-block': !c.rightAlgo,
+                'dashed-block--top': !c.rightAlgo,
+                'dashed-block--active': c.active === 'right'
+              }"
+              :style="{
+                'transform-origin': `${(getSectionWidth(i) - strokeWidth - blockWidth) + blockWidth / 2}px ${strokeWidth + blockHeight / 2}px` 
+              }"
+              :fill="c.rightAlgo ? 'url(#algo-block)' : 'none'"
+              :stroke="c.active === 'right' ? '#515151' : c.rightAlgo ? 'grey' : 'grey'"
               :ref="c.tracked ? 'rightRect' : 'test'"
             />
             <text
@@ -55,10 +94,17 @@
               fill="black"
               font-family="Verdana"
               font-size="16"
-              :x="getSectionWidth(i) - strokeWidth - blockWidth + 10"
+              :x="getSectionWidth(i) - strokeWidth - blockWidth / 2"
               :y="strokeWidth + 20"
+              text-anchor="middle"
             >
-              {{ c.rightAlgo }}
+              <tspan
+                v-for="(nameSection, j) in getAlgoName(c.rightAlgo)"
+                :key="c.rightAlgo + j"
+                :x="getSectionWidth(i) - strokeWidth - blockWidth / 2"
+                :y="strokeWidth + 20"
+                :dy="20 * j"
+              >{{ nameSection }} </tspan>
             </text>
             <line
               v-if="c.name"
@@ -93,7 +139,9 @@
               :height="blockHeight"
               :x="(getSectionWidth(i) - blockWidth) / 2"
               :y="(combBlockHeight - blockHeight) / 2"
-              class="comb-block"
+              rx="3"
+              ry="3"
+              fill="url(#comb-block)"
             >
             </rect>
             <text
@@ -112,16 +160,25 @@
               :height="blockHeight"
               :x="(getSectionWidth(i) - blockWidth) / 2"
               :y="combBlockHeight - blockHeight - strokeWidth"
-              class="dashed-block"
-              :fill="c.bottomAlgo ? c.bottomActive ? 'green' : 'white' : 'none'"
-              :stroke="c.bottomAlgo ? 'none' : 'grey'"
+              rx="3"
+              ry="3"
+              :class="{
+                block: true,
+                'dashed-block': true,
+                'block--bottom': true,
+                'block--bottom--filled': c.bottomAlgo
+              }"
+              :fill="c.bottomAlgo ? 'url(#algo-block)' : 'none'"
+              :stroke="c.bottomActive ? '#515151' : 'grey'"
             />
             <text
               v-if="c.tracked"
-              fill="black"
+              fill="white"
               font-family="Verdana"
               font-size="16"
-              :x="(getSectionWidth(i) - blockWidth) / 2 + 10"
+              class="text--bottom"
+              text-anchor="middle"
+              :x="(getSectionWidth(i) - blockWidth) / 2 + blockWidth / 2"
               :y="combBlockHeight - blockHeight - strokeWidth + 20"
               :ref="c.tracked ? 'bottomRect' : 'test'"
             >
@@ -152,6 +209,9 @@ export default {
     },
   },
   methods: {
+    getAlgoName(nameWithId) {
+      return nameWithId && typeof nameWithId === 'string' ? nameWithId.replace(/<->.*$/, '').split(' ') : [nameWithId];
+    },
     getAdditionalWidthFactor: function(rowIndex) {
       return (Math.pow(2, this.combMatrix.length - 1 - rowIndex) - 1);
     },
@@ -210,12 +270,28 @@ export default {
 </script>
 
 <style scoped>
-  .comb-block {
-    fill: papayawhip;
+  .block {
+    stroke-width: 2;
+  }
+  .block--bottom {
+    transform: rotate(0deg);
+  }
+  .block--bottom--filled {
+    fill-opacity: 0;
+    animation: appear 0.3s ease forwards 0.5s;
+  }
+  .block--filled {
+    transform: rotate(180deg);
+    animation: draw 0.4s linear forwards;
   }
   .dashed-block {
-    stroke-width: 2;
     stroke-dasharray: 10 5;
+  }
+  .dashed-block--top {
+    transition: transform 0.3s;
+  }
+  .dashed-block--active {
+    transform: scale(0.9);
   }
   .container {
     display: flex;
@@ -227,5 +303,23 @@ export default {
   }
   .section {
     display: flex;
+  }
+  @keyframes draw {
+    from {
+      stroke-dashoffset: -110;
+      stroke-dasharray: 40 270;
+    }
+    to {
+      stroke-dashoffset: 0;
+      stroke-dasharray: 270;
+    }
+  }
+  @keyframes appear {
+    from {
+      fill-opacity: 0;
+    }
+    to {
+      fill-opacity: 1;
+    }
   }
 </style>

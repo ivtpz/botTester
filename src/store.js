@@ -102,7 +102,7 @@ export default {
   mutations: {
     addToSubTree: (state, { algo, side, combinator, complete }) => {
       const tree = state.algorithmTrees[combinator];
-      if (complete) tree.name = ++state.computedAlgorithms;
+      if (complete) tree.name = `Algo ${++state.computedAlgorithms}`;
       const multiplier = side === 'right' ? 1 : -1;      
       tree.add(multiplier * 100, algo);
       // Not sure if this is needed??

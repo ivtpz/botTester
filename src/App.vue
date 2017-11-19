@@ -1,6 +1,5 @@
 <template>
   <div id="app">
-    <img src="./assets/robot.png">
     <router-view/>
   </div>
 </template>

@@ -1,0 +1,129 @@
+{
+  "algorithmTrees": {
+    "87": {
+      "value": 0,
+      "name": 4,
+      "combinator": 87,
+      "left": {
+        "value": -100,
+        "name": "157",
+        "combinator": null,
+        "left": null,
+        "right": null
+      },
+      "right": {
+        "value": 100,
+        "name": "341",
+        "combinator": null,
+        "left": null,
+        "right": null
+      }
+    },
+    "326": {
+      "value": 0,
+      "name": 3,
+      "combinator": 326,
+      "left": {
+        "value": -100,
+        "name": "1",
+        "combinator": null,
+        "left": null,
+        "right": null
+      },
+      "right": {
+        "value": 100,
+        "name": "2",
+        "combinator": null,
+        "left": null,
+        "right": null
+      },
+      "connected": true,
+      "tracked": false
+    },
+    "767": {
+      "value": 0,
+      "name": 1,
+      "combinator": 767,
+      "left": {
+        "value": -100,
+        "name": "863",
+        "combinator": null,
+        "left": null,
+        "right": null
+      },
+      "right": {
+        "value": 100,
+        "name": "652",
+        "combinator": null,
+        "left": null,
+        "right": null
+      },
+      "connected": true,
+      "tracked": false
+    },
+    "806": {
+      "value": 0,
+      "name": null,
+      "combinator": 806,
+      "left": null,
+      "right": {
+        "value": 100,
+        "name": 3,
+        "combinator": null,
+        "left": null,
+        "right": null
+      },
+      "connected": true,
+      "tracked": true
+    },
+    "968": {
+      "value": 0,
+      "name": 2,
+      "combinator": 968,
+      "left": {
+        "value": -100,
+        "name": "155",
+        "combinator": null,
+        "left": null,
+        "right": null
+      },
+      "right": {
+        "value": 100,
+        "name": "788",
+        "combinator": null,
+        "left": null,
+        "right": null
+      },
+      "connected": true,
+      "tracked": false
+    }
+  },
+  "connections": [
+    {
+      "value": 0,
+      "name": "806",
+      "combinator": null,
+      "left": null,
+      "right": {
+        "value": 0,
+        "name": "326",
+        "combinator": null,
+        "left": {
+          "value": -100,
+          "name": "767",
+          "combinator": null,
+          "left": null,
+          "right": null
+        },
+        "right": {
+          "value": 100,
+          "name": "968",
+          "combinator": null,
+          "left": null,
+          "right": null
+        }
+      }
+    }
+  ],
+  "computedAlgorithms": 4
+}
