@@ -27,6 +27,11 @@
                 <stop offset="0%" stop-color="#adebf1"/>
                 <stop offset="100%" stop-color="#6bf0fc"/>
               </radialGradient>
+              <filter id="drop-shadow" x="0" y="0" width="200%" height="200%">
+                <feOffset result="offOut" in="SourceAlpha" dx="3" dy="3" />
+                <feGaussianBlur result="blurOut" in="offOut" stdDeviation="5" />
+                <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
+              </filter>
             </defs>
             <rect
               v-if="c.name"
@@ -135,6 +140,7 @@
             />
             <rect
               v-if="c.name"
+              :filter="hovering ? 'url(#drop-shadow)' : ''"
               :width="blockWidth"
               :height="blockHeight"
               :x="(getSectionWidth(i) - blockWidth) / 2"
@@ -209,6 +215,9 @@ export default {
     'combBlockHeight',
     'strokeWidth',
     'combMatrix',
+    'top',
+    'left',
+    'hovering'
   ],
   computed: {
     rowStyle: function() {
@@ -275,6 +284,16 @@ export default {
       }
     }
   },
+  mounted() {
+    const { top, left, $el } = this;
+    const parentPosition = $el.parentElement.getBoundingClientRect();
+    if (left && top) {
+      $el.style.position = 'absolute';
+      $el.style.left = left - parentPosition.left + 'px';
+      $el.style.top = top - parentPosition.top + 'px';
+    }
+    this.updateDragPostion();
+  }
 };
 </script>
 
@@ -292,6 +311,10 @@ export default {
   .block--filled {
     transform: rotate(180deg);
     animation: draw 0.4s linear forwards;
+  }
+  .block--hovering {
+    box-shadow: 3px 3px 2px rgba(0,0,0,0.5);
+    border: 0px;
   }
   .dashed-block {
     stroke-dasharray: 10 5;
