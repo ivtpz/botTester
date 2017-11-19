@@ -149,10 +149,19 @@
               fill="black"
               font-family="Verdana"
               font-size="16"
-              :x="(getSectionWidth(i) - blockWidth) / 2"
+              :x="(getSectionWidth(i) - blockWidth) / 2 + blockWidth / 2"
               :y="(combBlockHeight - blockHeight) / 2 + 20"
+              text-anchor="middle"
             >
-              {{ c.name }}
+              <tspan
+                v-for="(nameSection, j) in getAlgoName(c.name)"
+                :key="c.name + j"
+                :x="(getSectionWidth(i) - blockWidth) / 2 + blockWidth / 2"
+                :y="(combBlockHeight - blockHeight) / 2 + 20"
+                :dy="20 * j"
+              >
+                {{ nameSection }}
+              </tspan>
             </text>
             <rect
               v-if="c.tracked"
@@ -164,7 +173,7 @@
               ry="3"
               :class="{
                 block: true,
-                'dashed-block': true,
+                'dashed-block': !c.bottomAlgo,
                 'block--bottom': true,
                 'block--bottom--filled': c.bottomAlgo
               }"
