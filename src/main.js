@@ -13,53 +13,65 @@ const store = new Vuex.Store(storeConfig);
 Vue.config.productionTip = false;
 
 // TODO: separate out into directives directory
-Vue.directive('draggable', function (el, binding, vNode) {
+// TODO: use bind (or inserted?) and update
+Vue.directive('draggable', {
+  bind: function (el, binding, vNode) {
     let debounced = false;
-    let maxX, maxY;
+    let maxX = 1000, maxY = 1000, minX = -1000, minY = -1000;
     vNode.context.$nextTick(() => {
-      const { width, height } = el.getBoundingClientRect();
-      const parentBox = el.parentElement.getBoundingClientRect();
-      maxX = parentBox.width - width;
-      maxY = parentBox.height - height;
+      if (binding.modifiers.bound) {
+        const { width, height } = el.getBoundingClientRect();
+        const parentBox = el.parentElement.getBoundingClientRect();
+        maxX = parentBox.width - width;
+        maxY = parentBox.height - height;
+        minX = 0;
+        minY = 0;
+      }
+          
+      el.addEventListener('click', function(e) {
+        e.stopPropagation();
+      })
+      
+      el.addEventListener('mousedown', function(e) {
+        console.log(el)
+        binding.value.func(binding.value.name);
+        if (el.style.position !== 'absolute') {
+          el.style.position = 'absolute';
+        }
+        e.stopPropagation();
+        e.preventDefault();
+        startX = el.offsetLeft;
+        startY = el.offsetTop;
+        initialMouseX = e.clientX;
+        initialMouseY = e.clientY;
+        document.addEventListener('mousemove', mousemove);
+        document.addEventListener('mouseup', mouseup);
+        return false;
+      });
     })
-    el.style.position = 'absolute';
     el.style.cursor = 'move';
+    el.style.position = 'absolute';
     var startX, startY, initialMouseX, initialMouseY;
-
+    
     function mousemove(e) {
       if (!debounced) {
-        binding.value();
+        if (binding.modifiers.tracked) binding.value.func();
         var dx = e.clientX - initialMouseX;
         var dy = e.clientY - initialMouseY;
-        el.style.top = Math.max(Math.min(startY + dy, maxY), 0) + 'px';
-        el.style.left = Math.max(Math.min(startX + dx, maxX), 0) + 'px';
+        el.style.top = Math.max(Math.min(startY + dy, maxY), minY) + 'px';
+        el.style.left = Math.max(Math.min(startX + dx, maxX), minX) + 'px';
         debounced = true;
         setTimeout(() => { debounced = false }, 100);
       }
       return false;
     }
-
+    
     function mouseup() {
-      binding.value('end');
+      binding.value.func('end');
       document.removeEventListener('mousemove', mousemove);
       document.removeEventListener('mouseup', mouseup);
     }
-
-    el.addEventListener('click', function(e) {
-      e.stopPropagation();
-    })
-
-    el.addEventListener('mousedown', function(e) {
-      e.stopPropagation();
-      e.preventDefault();
-      startX = el.offsetLeft;
-      startY = el.offsetTop;
-      initialMouseX = e.clientX;
-      initialMouseY = e.clientY;
-      document.addEventListener('mousemove', mousemove);
-      document.addEventListener('mouseup', mouseup);
-      return false;
-    });
+  }
 })
 
 new Vue({
