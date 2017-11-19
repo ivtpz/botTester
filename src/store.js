@@ -1,5 +1,6 @@
 import Vue from 'vue';
 
+// TODO: should I ditch values? probably.
 class Node {
   constructor(value, name, combinator) {
     this.value = value;
@@ -46,7 +47,7 @@ class Node {
 const flattenTreeToMatrix = (state, tree) => {
     const container = [[[tree]]];
     let children = true;
-    const emptyNode = { value: undefined, left: null, right: null };
+    const emptyNode = { name: undefined, tracked: false };
     while (children) {
       children = false;
       const level = [];
@@ -55,11 +56,20 @@ const flattenTreeToMatrix = (state, tree) => {
           if (node && node.left || node.right) {
             children = true;
             const childrenArray = [];
-            if (node.left) childrenArray.push(node.left);
-            if (node.right) childrenArray.push(node.right);
+            if (node.left) {
+              childrenArray.push(node.left);
+            } else if (node.right) {
+
+              childrenArray.push(emptyNode);
+            }
+            if (node.right) {
+              childrenArray.push(node.right);
+            } else if (node.left) {
+              childrenArray.push(emptyNode);
+            }
             level.push(childrenArray);
           } else {
-            level.push([ emptyNode ]);
+            level.push([ emptyNode, emptyNode ]);
           }
         });
       });
@@ -73,10 +83,10 @@ const flattenTreeToMatrix = (state, tree) => {
           section =>
             section.length ?
             section.map(node => {
-              return node.value !== undefined ?
+              return node.name !== undefined ?
               // TODO: figure out how to handle placeholder sections correctly
               { name: node.name, tracked: state.algorithmTrees[node.name].tracked }
-              : emptyNode;
+              : node;
             })
             : section
         )
@@ -115,7 +125,6 @@ export default {
           return true;
         }
       });
-      console.log(bottomIndex)
       const connectedTopComb = state.connections.find((tree, i) => {
         if (tree.findByName(topComb)) {
           topIndex = i;
@@ -123,18 +132,16 @@ export default {
         }
       });
       const multiplier = side === 'right' ? 1 : -1;
-
-      // TODO: set the bottom alg to be tracked
       if (connectedBottomComb && connectedTopComb) {
         // values won't work right...
         connectedBottomComb[side] = connectedTopComb;
         state.connections.splice(topIndex, 1);
       } else if (connectedBottomComb) {
-        const tree = connectedBottomComb;
-        tree[side] = new Node(multiplier * 100, topComb);
-        Vue.set(state.connections, bottomIndex, tree);
+        // This assumes that the connected bottom comb is always
+        // the root. Not 100% sure if that is valid...
+        connectedBottomComb.add(multiplier * 100, topComb);
+        Vue.set(state.connections, bottomIndex, connectedBottomComb);
       } else if (connectedTopComb) {
-        console.log(connectedTopComb)
         const tree = new Node(0, bottomComb);
         tree[side] = connectedTopComb;
         Vue.set(state.connections, topIndex, tree);
