@@ -38,9 +38,8 @@
         $el.style.position = 'absolute'
         $el.style.left = left - parentPostion.left + 'px';
         $el.style.top = top - parentPostion.top + 'px';
-      } else {
-        this.handleDrag();
       }
+      this.handleDrag();
     }
   };
 </script>
@@ -64,7 +63,7 @@
     border: 2px dashed #515151;
   }
   .block--hovering {
-    box-shadow: 3px 3px 2px rgba(0,0,0,0.5);
+    box-shadow: 3px 3px 5px rgba(0,0,0,0.8);
     border: 0px;
     z-index: 99;
   }
