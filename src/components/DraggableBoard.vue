@@ -12,9 +12,9 @@
     />
     <combinator-section
       v-for="comb in combs"
-      v-bind="blockStyles"
+      v-bind="Object.assign(blockStyles, combInitialPositions[comb[0][0][0].name])"
       :combMatrix="comb"
-      :key="comb[0][0].name"
+      :key="comb[0][0][0].name"
       @drag-move="handleCombDrag"
       @end-drag="combineCollidedElements"
     />
@@ -74,6 +74,13 @@ export default {
         ))
       );
     },
+    combInitialPositions: function() {
+      return Object.keys(this.combinators).reduce((positions, combName) => {
+        const comb = this.combinators[combName];
+        positions[combName] = { top: comb.top, left: comb.left };
+        return positions;
+      }, {});
+    }
   },
   methods: {
     emitMouseEnter() {
@@ -89,14 +96,17 @@ export default {
         positionObject = { top, bottom, left, right };
       }
       this.$set(
-        this.floatingAlgorithms, name || Math.floor(Math.random() * 1000),
-        positionObject || { ...emptyLocation }
+        this.floatingAlgorithms, name, positionObject || { ...emptyLocation }
       );
     },
     addCombinator(name, domPosition) {
-      console.log(domPosition)
-      // TODO: allow initial position
-      this.combinators = { ...this.combinators, [name]: {} };
+      this.combinators = { 
+        ...this.combinators,
+        [name]: {
+          top: domPosition.top,
+          left: domPosition.left
+        }
+      };
       this.$set(
         this.combinators[name], 'leftBlock', { ...emptyLocation }
       );
@@ -113,9 +123,6 @@ export default {
     },
     handleCombDrag({ name, leftBlock, rightBlock, bottomBlock, combName }) {
       if (bottomBlock) {
-        // This is a complete combinator, we will treat it like
-        // an algorithm
-        // TODO: add this when it's combined
         if (!this.floatingAlgorithms[name]) {
           this.completedCombinators[name] = combName;
           this.addFloatingAlgorithm(name, { ...bottomBlock })
