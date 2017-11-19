@@ -1,8 +1,9 @@
 <template>
-  <div class="board" v-on:click="handleClick" >
+  <div class="drag-detector" v-on="{ click: handleClick, mouseenter: emitMouseEnter, mouseleave: emitMouseLeave }">
+  <div class="board">
     <algorithm-block
       v-for="algo in algos"
-      v-bind="algo"
+      v-bind="Object.assign(algo, floatingAlgorithms[algo.name])"
       :key="algo.name"
       :width="blockStyles.blockWidth"
       :height="blockStyles.blockHeight"
@@ -17,6 +18,7 @@
       @drag-move="handleCombDrag"
       @end-drag="combineCollidedElements"
     />
+ </div>
  </div>
 </template>
 
@@ -47,9 +49,9 @@ export default {
       collidedAlgo: null,
       collidedComb: { name: null },
       blockStyles: {
-        blockWidth: 50,
+        blockWidth: 40,
         blockHeight: 30,
-        combBlockWidth: 150,
+        combBlockWidth: 90,
         combBlockHeight: 120,
         strokeWidth: 2,
       },
@@ -58,6 +60,7 @@ export default {
   },
   computed: {
     algos: function() {
+      console.log(this.floatingAlgorithms.Momentu)
       return Object.keys(this.floatingAlgorithms)
         .filter(key => this.floatingAlgorithms[key] && !this.completedCombinators[key])
         .map(algo => ({ name: algo, active: this.collidedAlgo === algo }))
@@ -70,8 +73,9 @@ export default {
             tracked,
             active: this.collidedComb.name === name
               ? this.collidedComb.side : null,
-            leftAlgo: this.combinators[name].leftAlgo,
-            rightAlgo: this.combinators[name].rightAlgo,
+            bottomActive: this.collidedAlgo && this.completedCombinators[this.collidedAlgo] === name,
+            leftAlgo: this.combinators[name] && this.combinators[name].leftAlgo,
+            rightAlgo: this.combinators[name] && this.combinators[name].rightAlgo,
             bottomAlgo: this.$store.getters.getComputedAlgorithmName(name)
           }))
         ))
@@ -80,7 +84,6 @@ export default {
   },
   methods: {
     handleClick() {
-      console.log(this.$store.getters.getCombinatorMatricies);
       if (this.num % 3) {
         this.addFloatingAlgorithm();
       } else {
@@ -88,10 +91,21 @@ export default {
       }
       this.num++;
     },
-    addFloatingAlgorithm(name, position) {
+    emitMouseEnter() {
+      this.$emit('mouse-enter-board');
+    },
+    emitMouseLeave() {
+      this.$emit('mouse-leave-board');
+    },
+    addFloatingAlgorithm(name, domPostion) {
+      let positionObject;
+      if (domPostion) {
+        const { top, bottom, left, right } = domPostion;
+        positionObject = { top, bottom, left, right };
+      }
       this.$set(
         this.floatingAlgorithms, name || Math.floor(Math.random() * 1000),
-        position || { ...emptyLocation }
+        positionObject || { ...emptyLocation }
       );
     },
     addCombinator() {
@@ -192,10 +206,13 @@ export default {
 </script>
 
 <style scoped>
+  .drag-detector {
+    z-index: 100;
+  }
   .board {
     position: relative;
-    background-color: lightgray;
     width: 650px;
     height: 450px;
+    border: 2px solid grey;
   }
 </style>
