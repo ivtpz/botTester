@@ -48,6 +48,8 @@
             v-else
             v-bind="blockStyles"
             :combMatrix="getCombMatrix(comb)"
+            :left="undefined"
+            :top="undefined"
             :name="comb"
             :hovering="true"
           />
